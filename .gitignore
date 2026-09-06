@@ -1,0 +1,19 @@
+# Rebuildable local Python environments
+anprsys/
+tfod/
+
+# TensorFlow's upstream source clone; retain the project workspace instead
+Tensorflow/models/
+
+# Notebook and Python cache files
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+
+# Local editor and operating-system files
+.DS_Store
+Thumbs.db
+
+# Original nested source checkout retained locally; the usable script is in /scripts.
+Tensorflow/scripts/
