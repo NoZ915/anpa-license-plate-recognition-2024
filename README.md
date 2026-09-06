@@ -1,57 +1,74 @@
 # Automatic Number Plate Recognition
 
-2023 下學期《機器學習》期末專題。這是一份以 TensorFlow Object Detection API 建立的車牌辨識實驗紀錄：先從影像或網路攝影機畫面中定位車牌區域，再交由 OCR 讀取車牌文字，並保存辨識結果與裁切影像。
+2023 下學期《機器學習》期末專題。此專題以 TensorFlow Object Detection API 建立車牌辨識流程：先從影像或網路攝影機畫面中偵測車牌區域，再以 OCR 辨識裁切後的車牌文字，最後保存辨識結果與車牌影像。
 
-## Project overview
+## 專題介紹
 
-本專題將車牌辨識拆分為兩個階段：
+本專題主要分為兩個步驟：
 
-1. **車牌偵測**：以 TensorFlow Object Detection API 和 SSD MobileNet V2 FPNLite 320×320 預訓練模型進行遷移學習，訓練自訂的單一類別 `licence`，預測車牌的邊界框。
-2. **車牌文字辨識**：依偵測框裁切 ROI（Region of Interest），再以 EasyOCR 辨識車牌字元；低於設定信心門檻的偵測結果會被過濾。
+1. **車牌偵測**  
+   使用 TensorFlow Object Detection API 與 SSD MobileNet V2 FPNLite 320×320 預訓練模型進行遷移學習，訓練自訂的 `licence` 類別，找出影像中的車牌位置。
 
-訓練與推論流程支援靜態影像和網路攝影機即時畫面。辨識結果會記錄在 CSV，裁切出的車牌影像則以辨識文字與時間戳記命名保存。
+2. **車牌文字辨識**  
+   依據偵測框裁切車牌區域（ROI），再使用 EasyOCR 讀取車牌文字；低於信心分數門檻的偵測結果會被過濾。
 
-## Implementation
+專題支援靜態影像與網路攝影機即時辨識。辨識結果會輸出至 CSV，裁切出的車牌影像則以辨識結果與時間戳記命名保存。
 
-- **Language and notebooks:** Python, Jupyter Notebook
-- **Detection model:** TensorFlow 2, TensorFlow Object Detection API, SSD MobileNet V2 FPNLite 320×320
-- **Vision and OCR:** OpenCV, EasyOCR
-- **Training workflow:** Pascal VOC XML annotations → TFRecord → transfer learning → checkpoint inference
-- **Evaluation records:** TensorBoard events, model checkpoints, CSV results, and cropped detections
+## 使用技術
 
-The training configuration uses one `licence` class, a batch size of 4, and a 10,000-step training run. The main notebook also includes ROI conversion, detection-score filtering, OCR integration, result persistence, and real-time webcam inference.
+- Python、Jupyter Notebook
+- TensorFlow 2
+- TensorFlow Object Detection API
+- SSD MobileNet V2 FPNLite 320×320
+- OpenCV
+- EasyOCR
+- Protocol Buffers
+- TensorBoard
 
-## Repository guide
+## 實作流程
+
+```text
+影像資料集
+→ XML 車牌標註
+→ 訓練／測試資料切分
+→ 轉換為 TFRecord
+→ SSD MobileNet 遷移學習
+→ 車牌位置偵測
+→ 裁切車牌 ROI
+→ EasyOCR 文字辨識
+→ 輸出 CSV 與裁切結果影像
+```
+
+## 專案結構
 
 ```text
 .
-├── 1. Image Collection.ipynb       # Legacy collection/labelling workflow
-├── 2. Training and Detection.ipynb # Main ANPR training, OCR, and inference workflow
+├── 1. Image Collection.ipynb       # Legacy 影像蒐集與標註流程
+├── 2. Training and Detection.ipynb # 主要訓練、車牌偵測與 OCR 流程
 ├── Tensorflow/
 │   └── workspace/
-│       ├── annotations/            # label map and TFRecord files
-│       ├── images/                 # train/test images and XML annotations
-│       └── models/                 # pipeline config, checkpoints, TensorBoard logs
-├── Detection_Images/               # cropped licence-plate results
-├── detection_results.csv           # still-image OCR results
-├── realtimeresults.csv             # webcam OCR experiment results
-├── Error Guide.md                  # legacy installation/troubleshooting notes
-└── Legacy.md                       # provenance of legacy course-derived materials
+│       ├── annotations/            # label map 與 TFRecord
+│       ├── images/                 # train/test 影像與 XML 標註
+│       └── models/                 # 設定檔、checkpoint、TensorBoard 紀錄
+├── scripts/
+│   └── generate_tfrecord.py        # TFRecord 產生腳本
+├── Detection_Images/               # 已裁切的車牌辨識結果
+├── detection_results.csv           # 單張影像辨識結果
+├── realtimeresults.csv             # 即時辨識實驗結果
+├── Legacy/                         # 原始教學 README 與 2024 設定備份
+├── Legacy.md                       # Legacy 材料說明
+└── Error Guide.md                  # 安裝與除錯筆記
 ```
 
-## Workflow
-
-```text
-Images → XML annotations → train/test split → TFRecord
-→ SSD MobileNet transfer learning → licence-plate detection
-→ ROI crop → EasyOCR → CSV and cropped-image outputs
-```
+---
 
 ## Legacy materials and provenance
 
-This repository preserves its original learning context. The initial notebook layout, the former README, the error guide, `generate_tfrecord.py`, and the TensorFlow Models setup were derived from the TFODCourse walkthrough by Nicholas Renotte. They are retained as **Legacy** materials because they document the environment and process used at the time.
+This repository preserves its original learning context. The initial notebook layout, former generic README, error guide, `generate_tfrecord.py`, and TensorFlow Models setup were derived from the TFODCourse walkthrough by Nicholas Renotte.
 
-The project-specific work is the conversion of that workflow into an ANPR pipeline: the `licence` label map, vehicle-image dataset and annotations, TFRecord generation, model configuration, trained checkpoints, EasyOCR integration, real-time detection, result-saving logic, and experiment records.
+They are retained as **Legacy** materials because they document the environment and workflow used at the time.
+
+The project-specific work is the adaptation into an ANPR pipeline: the `licence` label map, vehicle-image dataset and XML annotations, TFRecord generation, model configuration, trained checkpoints, EasyOCR integration, real-time detection, result-saving logic, and experiment records.
 
 ## Project records
 
@@ -67,7 +84,6 @@ The project-specific work is the conversion of that workflow into an ANPR pipeli
 
 ## Notes
 
-- This is a preserved 2024 experiment archive for coursework and reproducibility.
+- This repository is a preserved 2024 coursework experiment archive.
 - The included images and recognition records are test materials from the original project.
-- Rebuild the Python environment from documented dependencies rather than committing virtual environments such as `anprsys/` or `tfod/`.
-
+- Rebuild Python environments from dependencies instead of committing local virtual environments such as `anprsys/` or `tfod/`.
